@@ -42,6 +42,7 @@ class App extends Component {
     let entities = line[1]['entities']; // Array
     let originalPhrase = line[2];
     line[3] = [];
+    line[4] = false;
     if (entities && entities.length) { // Exist
       entities[this.state.entityIndex][2] = this.state.newEntityKey;
       for (let j = 0; j < entities.length; j++) {
@@ -50,7 +51,7 @@ class App extends Component {
         /**
          * 0 => Start
          * 1 => End
-         * 3 => Entity Name
+         * 2 => Entity Name
          */
         let start = entity[0];
         let end = entity[1];
@@ -108,7 +109,7 @@ class App extends Component {
           /**
            * 0 => Start
            * 1 => End
-           * 3 => Entity Name
+           * 2 => Entity Name
            */
           let start = entity[0];
           let end = entity[1];
@@ -178,33 +179,59 @@ class App extends Component {
     return term;
   }
 
+  handleEditChange = (event, index) => {
+    console.log(event.target.value);
+    let line = [...this.state.lines[index]];
+    let lines = [...this.state.lines];
+    line[0] += event.target.value;
+    line[2] += event.target.value;
+    line[3][line[3].length - 1] += event.target.value;
+    lines[index] = line;
+    this.setState({
+      lines: lines
+    });
+  }
+
   renderPhrases = () => {
     return (<div className="container field">
-      <div className="well entities">
-        {
-          Object.keys(ENTITIES).map((entity, key) => {
-            return (
-              <div className="entity" style={{
-                backgroundColor: ENTITIES[entity]
-              }} key={key}
-                onClick={() => this.getChangedEntity(entity)}>
-                {entity}
-              </div>)
 
-          })
-        }
-      </div>
       {
         this.state.lines.map((line, idx) => {
           return (
-            <div type="text" className="form-control" contentEditable name="phrase" key={idx} suppressContentEditableWarning={true}>
-              {line[3].map((out, index) => (
-                <Aux key={index}>
-                  {out}
-                </Aux>
-              ))
+            <Aux key={idx}>
+              <div type="text" className="form-control" contentEditable name="phrase" suppressContentEditableWarning={true} onInput={(e) => {
+                // this.handleEditChange.bind(this, e, idx)
+                // e.persist();
+                // console.log(e.target.value);
+              }}>
+                {line[3].map((out, index) => (
+                  <Aux key={index}>
+                    {out}
+                  </Aux>
+                ))
+                }
+              </div>
+              {
+                this.state.lineIndex === idx ?
+                  (
+                    <div className="card bg-light entities">
+                      {
+                        Object.keys(ENTITIES).map((entity, key) => {
+                          return (
+                            <div className="entity" style={{
+                              backgroundColor: ENTITIES[entity]
+                            }} key={key}
+                              onClick={() => this.getChangedEntity(entity)}>
+                              {entity}
+                            </div>)
+
+                        })
+                      }
+                    </div>
+                  )
+                  : null
               }
-            </div>
+            </Aux>
           )
 
         })
