@@ -1,0 +1,21 @@
+export const entities = {
+    'CORE': '#AE8CA3',
+    'ACTION': '#9EE493',
+    'SIDE_CORE': '#40798C',
+    'AREAS': '#D17A22',
+    'BUDGET': '#3498db',
+    'CANCEL': '#c0392b',
+    'EXCLUDE': '#76BED0',
+    'EXTRAS': '#FFA69E',
+    'FOOD_CATEGORY': '#6DAEDB',
+    'FOOD_CUSINES': '#EFD0CA',
+    'INCLUDE': '#FE938C',
+    'POPULAR': '#192BC2',
+    'RECAP': '#ED474A',
+    'REQUEST': '#E0C879',
+    'REQUEST_ADD': '#2ecc71',
+    'REQUEST_REMOVE': '#e74c3c',
+    'RESTAURANT': '#AEADF0',
+    'SIZE': '#F0BCD4',
+    'AFTER_CORE': '#6c5ce7'
+};
