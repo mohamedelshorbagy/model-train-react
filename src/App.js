@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { entities } from './constants'
+import { ENTITIES } from './constants'
 import './App.css';
 import Aux from './aux';
 
@@ -7,7 +7,10 @@ class App extends Component {
   state = {
     tuplePhrases: '',
     showPhrases: false,
-    lines: []
+    lines: [],
+    lineIndex: -1,
+    entityIndex: -1,
+    newEntityKey: null
   }
 
 
@@ -17,26 +20,87 @@ class App extends Component {
     });
   }
 
+  getChangedEntity = (newEntity) => {
+    this.setState({
+      newEntityKey: newEntity
+    }, () => {
+      this.updateEntity();
+    })
+  }
+
+  getChangedIndex = (lineIndex, entityIndex) => {
+    this.setState({
+      lineIndex: lineIndex,
+      entityIndex: entityIndex
+    })
+  }
+
+  updateEntity = () => {
+    let line = [...this.state.lines[this.state.lineIndex]];
+
+    let phrase = line[0];
+    let entities = line[1]['entities']; // Array
+    let originalPhrase = line[2];
+    line[3] = [];
+    if (entities && entities.length) { // Exist
+      entities[this.state.entityIndex][2] = this.state.newEntityKey;
+      for (let j = 0; j < entities.length; j++) {
+        let entity = entities[j];
+
+        /**
+         * 0 => Start
+         * 1 => End
+         * 3 => Entity Name
+         */
+        let start = entity[0];
+        let end = entity[1];
+        let entityName = entity[2];
+        let token = originalPhrase.substring(start, end);
+        phrase = phrase.slice(end);
+        let tokenWithEntity =
+          (<span
+            entity={entityName}
+            style={{
+              backgroundColor: ENTITIES[entityName],
+              cursor: 'pointer'
+            }}
+            onClick={() => this.getChangedIndex(this.state.lineIndex, j)}>
+            {token}
+          </span>);
+        line[3].push(tokenWithEntity);
+      }
+      line[3].push(phrase);
+    }
+
+
+    let lines = [...this.state.lines];
+
+    lines[this.state.lineIndex] = line;
+
+    this.setState({
+      lines: lines
+    })
+
+  }
+
   togglePhrases = () => {
     const lines = this.tuple2Arrays(this.state.tuplePhrases);
     this.setState((prevState) => {
       return {
         ...prevState,
-        showPhrases: !prevState.showPhrases,
+        showPhrases: true,
         lines: lines
       }
     });
   }
 
-  showEntities = (idx, ent) => {
-    console.log(idx, ent);
-  }
+
   getEntitesFromPhrase = (lines) => {
     for (let i = 0; i < lines.length; i++) {
       let phrase = lines[i][0];
       let entites = lines[i][1]['entities']; // Array
       lines[i][2] = phrase;
-      let originalPhrase = lines[i][2];
+      let originalPhrase = lines[i][2]; // original phrase
       lines[i][3] = []; // output content
       if (entites && entites.length) { // Exist
         for (let j = 0; j < entites.length; j++) {
@@ -55,10 +119,12 @@ class App extends Component {
             (<span
               entity={entityName}
               style={{
-                backgroundColor: entities[entityName],
+                backgroundColor: ENTITIES[entityName],
                 cursor: 'pointer'
               }}
-              onClick={() => this.showEntities(i, j)}>{token}</span>);
+              onClick={() => this.getChangedIndex(i, j)}>
+              {token}
+            </span>);
           lines[i][3].push(tokenWithEntity);
         }
         lines[i][3].push(phrase);
@@ -116,11 +182,12 @@ class App extends Component {
     return (<div className="container field">
       <div className="well entities">
         {
-          Object.keys(entities).map((entity, key) => {
+          Object.keys(ENTITIES).map((entity, key) => {
             return (
               <div className="entity" style={{
-                backgroundColor: entities[entity]
-              }} key={key}>
+                backgroundColor: ENTITIES[entity]
+              }} key={key}
+                onClick={() => this.getChangedEntity(entity)}>
                 {entity}
               </div>)
 

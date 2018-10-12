@@ -1,4 +1,4 @@
-export const entities = {
+export const ENTITIES = {
     'CORE': '#AE8CA3',
     'ACTION': '#9EE493',
     'SIDE_CORE': '#40798C',
