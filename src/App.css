@@ -3,9 +3,13 @@
     margin-top: 15px;
 }
 
-.btn {
+.btns {
     margin-left: 50%;
     transform: translateX(-50%);
+}
+
+.btns .btn {
+    margin-left: 10px;
 }
 
 .entities {

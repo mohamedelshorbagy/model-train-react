@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { ENTITIES } from './constants'
 import './App.css';
 import Aux from './aux';
-
+import saveAs from 'file-saver';
 class App extends Component {
   state = {
     tuplePhrases: '',
@@ -33,6 +33,21 @@ class App extends Component {
       lineIndex: lineIndex,
       entityIndex: entityIndex
     })
+  }
+
+
+  removeEntity = () => {
+    let line = [...this.state.lines[this.state.lineIndex]];
+    let lines = [...this.state.lines];
+    line[1]['entities'].splice(this.state.entityIndex, 1);
+
+    lines[this.state.lineIndex] = line;
+
+    this.setState({
+      lines: lines
+    })
+
+
   }
 
   updateEntity = () => {
@@ -180,16 +195,59 @@ class App extends Component {
   }
 
   handleEditChange = (event, index) => {
-    console.log(event.target.value);
-    let line = [...this.state.lines[index]];
+    console.group('text');
+    console.log('New Data : ', event.target.textContent);
+    console.groupEnd();
+    // let newData = event.target.textContent;
+    // let line = [...this.state.lines[index]];
+    // let lines = [...this.state.lines];
+    // line[0] = newData;
+    // line[2] = newData;
+    // line[3] = [];
+    // let phrase = line[0];
+    // let originalPhrase = line[2];
+    // let entities = line[1]['entities'];
+    // if (entities && entities.length) { // Exist
+    //   for (let j = 0; j < entities.length; j++) {
+    //     let entity = entities[j];
+    //     /**
+    //      * 0 => Start
+    //      * 1 => End
+    //      * 2 => Entity Name
+    //      */
+    //     let start = entity[0];
+    //     let end = entity[1];
+    //     let entityName = entity[2];
+    //     let token = originalPhrase.substring(start, end);
+    //     phrase = phrase.slice(end);
+    //     let tokenWithEntity =
+    //       (<span
+    //         entity={entityName}
+    //         style={{
+    //           backgroundColor: ENTITIES[entityName],
+    //           cursor: 'pointer'
+    //         }}
+    //         onClick={() => this.getChangedIndex(index, j)}>
+    //         {token}
+    //       </span>);
+    //     line[3].push(tokenWithEntity);
+    //   }
+    //   line[3].push(phrase);
+    // }
+    // lines[index] = line;
+
+    // this.setState({
+    //   lines: lines
+    // });
+  }
+
+
+  saveFile = () => {
     let lines = [...this.state.lines];
-    line[0] += event.target.value;
-    line[2] += event.target.value;
-    line[3][line[3].length - 1] += event.target.value;
-    lines[index] = line;
-    this.setState({
-      lines: lines
-    });
+    let text = this.arrays2Tuples(lines);
+
+    let blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    saveAs(blob, "data.txt");
   }
 
   renderPhrases = () => {
@@ -199,9 +257,9 @@ class App extends Component {
         this.state.lines.map((line, idx) => {
           return (
             <Aux key={idx}>
-              <div type="text" className="form-control" contentEditable name="phrase" suppressContentEditableWarning={true} onInput={(e) => {
-                // this.handleEditChange.bind(this, e, idx)
-                // e.persist();
+              <div type="text" className="form-control" contentEditable name="phrase" suppressContentEditableWarning={true} onFocus={(e) => {
+                e.persist();
+                this.handleEditChange(e, idx);
                 // console.log(e.target.value);
               }}>
                 {line[3].map((out, index) => (
@@ -227,6 +285,7 @@ class App extends Component {
 
                         })
                       }
+                      <button className="btn btn-danger" onClick={this.removeEntity}>Remove Entity</button>
                     </div>
                   )
                   : null
@@ -247,7 +306,12 @@ class App extends Component {
       <div className="App">
         <div className="container">
           <input type="text" placeholder="tuple" onChange={this.handleInputChange} className="form-control" />
-          <button className="btn btn-primary" onClick={this.togglePhrases}>Submit</button>
+          <div className="row">
+            <div className="btns">
+              <button className="btn btn-primary" onClick={this.togglePhrases}>Submit</button>
+              <button className="btn btn-success" onClick={this.saveFile}>Save</button>
+            </div>
+          </div>
           <hr />
           {
             this.state.showPhrases ? this.renderPhrases() : null
