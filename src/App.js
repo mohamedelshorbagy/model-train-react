@@ -10,7 +10,31 @@ class App extends Component {
     lines: [],
     lineIndex: -1,
     entityIndex: -1,
-    newEntityKey: null
+    newEntityKey: null,
+    items: [1, 2, 3, 4]
+  }
+
+
+  addItem = () => {
+    let items = [...this.state.items];
+
+    items.push(5);
+
+    this.setState({
+      items: items
+    });
+
+  }
+
+  removeItem = () => {
+    let items = [...this.state.items];
+
+    items.pop();
+
+    this.setState({
+      items: items
+    });
+
   }
 
 
@@ -113,24 +137,38 @@ class App extends Component {
 
   getEntitesFromPhrase = (lines) => {
     for (let i = 0; i < lines.length; i++) {
-      let phrase = lines[i][0];
-      let entites = lines[i][1]['entities']; // Array
-      lines[i][2] = phrase;
-      let originalPhrase = lines[i][2]; // original phrase
-      lines[i][3] = []; // output content
-      if (entites && entites.length) { // Exist
-        for (let j = 0; j < entites.length; j++) {
-          let entity = entites[j];
+      let line = lines[i];
+      let phrase = line[0];
+      let entities = line[1]['entities']; // Array
+      line[2] = phrase;
+      let originalPhrase = line[2]; // original phrase
+      line[3] = []; // output content
+      let actualEnd = -1;
+      if (entities && entities.length) { // Exist
+        for (let j = 0; j < entities.length; j++) {
+          let entity = entities[j];
           /**
            * 0 => Start
            * 1 => End
            * 2 => Entity Name
            */
+
           let start = entity[0];
+          if (start !== 0 && actualEnd === -1) {
+            let tokensBetweenEntities = originalPhrase.substring(0, start);
+            phrase = phrase.substring(tokensBetweenEntities.length);
+            line[3].push(tokensBetweenEntities);
+          }
           let end = entity[1];
           let entityName = entity[2];
           let token = originalPhrase.substring(start, end);
-          phrase = phrase.slice(end);
+          if (actualEnd < start && actualEnd !== -1) {
+            let tokensBetweenEntities = originalPhrase.substring(actualEnd, start);
+            phrase = phrase.substring(tokensBetweenEntities.length);
+            line[3].push(tokensBetweenEntities);
+          }
+          phrase = phrase.substring(token.length);
+          actualEnd = end;
           let tokenWithEntity =
             (<span
               entity={entityName}
@@ -141,18 +179,18 @@ class App extends Component {
               onClick={() => this.getChangedIndex(i, j)}>
               {token}
             </span>);
-          lines[i][3].push(tokenWithEntity);
+          line[3].push(tokenWithEntity);
         }
-        lines[i][3].push(phrase);
       }
+      line[3].push(phrase);
     }
+
 
   }
 
   tuple2Arrays = (tuples) => {
     tuples = tuples.replace(/\(/g, '[').replace(/\)/g, ']');
-    let result = eval(tuples);
-    return result;
+    return Function(`return (${tuples});`)();
   }
 
   arrays2Tuples = (array) => {
@@ -196,49 +234,72 @@ class App extends Component {
 
   handleEditChange = (event, index) => {
     console.group('text');
-    console.log('New Data : ', event.target.textContent);
+    console.log(1, 'New Data : ', event.target.innerText);
     console.groupEnd();
-    // let newData = event.target.textContent;
-    // let line = [...this.state.lines[index]];
-    // let lines = [...this.state.lines];
-    // line[0] = newData;
-    // line[2] = newData;
-    // line[3] = [];
-    // let phrase = line[0];
-    // let originalPhrase = line[2];
-    // let entities = line[1]['entities'];
-    // if (entities && entities.length) { // Exist
-    //   for (let j = 0; j < entities.length; j++) {
-    //     let entity = entities[j];
-    //     /**
-    //      * 0 => Start
-    //      * 1 => End
-    //      * 2 => Entity Name
-    //      */
-    //     let start = entity[0];
-    //     let end = entity[1];
-    //     let entityName = entity[2];
-    //     let token = originalPhrase.substring(start, end);
-    //     phrase = phrase.slice(end);
-    //     let tokenWithEntity =
-    //       (<span
-    //         entity={entityName}
-    //         style={{
-    //           backgroundColor: ENTITIES[entityName],
-    //           cursor: 'pointer'
-    //         }}
-    //         onClick={() => this.getChangedIndex(index, j)}>
-    //         {token}
-    //       </span>);
-    //     line[3].push(tokenWithEntity);
-    //   }
-    //   line[3].push(phrase);
-    // }
-    // lines[index] = line;
+    let newData = event.target.innerText;
+    let line = [...this.state.lines[index]];
+    let lines = [...this.state.lines];
+    newData = newData.replace(/(\r\n|\n|\r)/gm, '');
+    if (newData === '') {
+      line[1]['entities'] = [];
+    }
+    line[0] = newData;
+    line[2] = newData;
+    let phrase = line[0];
+    let entities = line[1]['entities'];
+    console.log(2, newData);
+    console.log(1, newData);
 
-    // this.setState({
-    //   lines: lines
-    // });
+
+    line[2] = phrase;
+    let originalPhrase = line[2]; // original phrase
+    line[3] = []; // output content
+    let actualEnd = -1;
+    if (entities && entities.length) { // Exist
+      for (let j = 0; j < entities.length; j++) {
+        let entity = entities[j];
+        /**
+         * 0 => Start
+         * 1 => End
+         * 2 => Entity Name
+         */
+
+        let start = entity[0];
+        if (start !== 0 && actualEnd === -1) {
+          let tokensBetweenEntities = originalPhrase.substring(0, start);
+          phrase = phrase.substring(tokensBetweenEntities.length);
+          line[3].push(tokensBetweenEntities);
+        }
+        let end = entity[1];
+        let entityName = entity[2];
+        let token = originalPhrase.substring(start, end);
+        if (actualEnd < start && actualEnd !== -1) {
+          let tokensBetweenEntities = originalPhrase.substring(actualEnd, start);
+          phrase = phrase.substring(tokensBetweenEntities.length);
+          line[3].push(tokensBetweenEntities);
+        }
+        phrase = phrase.substring(token.length);
+        actualEnd = end;
+        let tokenWithEntity =
+          (<span
+            entity={entityName}
+            style={{
+              backgroundColor: ENTITIES[entityName],
+              cursor: 'pointer'
+            }}
+            onClick={() => this.getChangedIndex(index, j)}>
+            {token}
+          </span>);
+        line[3].push(tokenWithEntity);
+      }
+    }
+    line[3].push(phrase);
+    console.log(line);
+    lines[index] = line;
+
+    this.setState({
+      lines: lines
+    });
   }
 
 
@@ -251,60 +312,79 @@ class App extends Component {
   }
 
   renderPhrases = () => {
-    return (<div className="container field">
+    this.getEntitesFromPhrase(this.state.lines);
+    return (
+      <div className="container field">
+        {
+          this.state.lines.map((line, idx) => {
+            let lineEntities;
+            if (line[3] && line[3].length) {
+              lineEntities = line[3].map((out, index) => (
+                <Aux key={index}>
+                  {out}
+                </Aux>
+              ))
+            } else {
+              lineEntities = null;
+            }
+            return (
+              <Aux key={idx}>
+                <div type="text" className="form-control" contentEditable name="phrase" suppressContentEditableWarning={true} onBlur={(e) => {
+                  e.persist();
+                  this.handleEditChange(e, idx);
+                  // console.log(e.target.value);
+                }}>
+                  {
+                    lineEntities
+                  }
+                </div>
+                {
+                  this.state.lineIndex === idx ?
+                    (
+                      <div className="card bg-light entities">
+                        {
+                          Object.keys(ENTITIES).map((entity, key) => {
+                            return (
+                              <div className="entity" style={{
+                                backgroundColor: ENTITIES[entity]
+                              }} key={key}
+                                onClick={() => this.getChangedEntity(entity)}>
+                                {entity}
+                              </div>)
 
-      {
-        this.state.lines.map((line, idx) => {
-          return (
-            <Aux key={idx}>
-              <div type="text" className="form-control" contentEditable name="phrase" suppressContentEditableWarning={true} onFocus={(e) => {
-                e.persist();
-                this.handleEditChange(e, idx);
-                // console.log(e.target.value);
-              }}>
-                {line[3].map((out, index) => (
-                  <Aux key={index}>
-                    {out}
-                  </Aux>
-                ))
+                          })
+                        }
+                        <button className="btn btn-danger" onClick={this.removeEntity}>Remove Entity</button>
+                      </div>
+                    )
+                    : null
                 }
-              </div>
-              {
-                this.state.lineIndex === idx ?
-                  (
-                    <div className="card bg-light entities">
-                      {
-                        Object.keys(ENTITIES).map((entity, key) => {
-                          return (
-                            <div className="entity" style={{
-                              backgroundColor: ENTITIES[entity]
-                            }} key={key}
-                              onClick={() => this.getChangedEntity(entity)}>
-                              {entity}
-                            </div>)
+              </Aux>
+            )
 
-                        })
-                      }
-                      <button className="btn btn-danger" onClick={this.removeEntity}>Remove Entity</button>
-                    </div>
-                  )
-                  : null
-              }
-            </Aux>
-          )
-
-        })
-      }
-    </div>)
+          })
+        }
+      </div>)
   }
 
   render() {
-    if (this.state.showPhrases) {
-      this.getEntitesFromPhrase(this.state.lines);
-    }
+
     return (
       <div className="App">
         <div className="container">
+          <button className="btn btn-default" onClick={this.addItem}>+ Add</button>
+          <button className="btn btn-default" onClick={this.removeItem}>- Remove</button>
+
+          <ul className="list-group">
+            {
+              this.state.items.map((el, index) => {
+                return (<li className="list-group-item" key={index}>{el}</li>)
+              })
+            }
+
+          </ul>
+
+
           <input type="text" placeholder="tuple" onChange={this.handleInputChange} className="form-control" />
           <div className="row">
             <div className="btns">

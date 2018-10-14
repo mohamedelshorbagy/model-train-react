@@ -28,3 +28,7 @@
     padding: 5px;
     cursor: pointer;
 }
+
+.span-div {
+    display: inline;
+}
